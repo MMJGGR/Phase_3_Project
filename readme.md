@@ -3,6 +3,12 @@
 * [Notebook PDF](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.pdf)
 * [Data Sources](https://www.seattle.gov/police/information-and-data/data/terry-stops/terry-stops-dataset)
 
+project tree:
+.gitignore
+Phase3-Presentation.pptx
+index.ipynb
+index.pdf
+readme.md
 
 
 # 1. Introduction
