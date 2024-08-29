@@ -1,3 +1,15 @@
+* [Slideshow Presentation](https://github.com/MMJGGR/Phase_3_Project/blob/master/presentation.pdf)
+* [Jupyter Notebook](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.ipynb)
+* [Notebook PDF](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.pdf)
+* [Data Sources](https://www.seattle.gov/police/information-and-data/data/terry-stops/terry-stops-dataset)
+
+project tree:
+.gitignore
+presentation.pdf
+index.ipynb
+index.pdf
+readme.md
+
 # 1. Introduction
 
 The Seattle Police Department (SPD) conducts Terry Stops as part of their law enforcement efforts to address public safety concerns. Terry Stops involve stopping, questioning, and sometimes frisking individuals based on reasonable suspicion of involvement in criminal activity. However, the effectiveness and fairness of these stops have been scrutinized, particularly regarding potential biases and the frequency of resulting arrests.
