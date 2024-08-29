@@ -1,4 +1,4 @@
-* [Slideshow Presentation](https://github.com/MMJGGR/Phase_3_Project/blob/master/Phase2-Presentation.pptx)
+* [Slideshow Presentation](https://github.com/MMJGGR/Phase_3_Project/blob/master/presentation.pdf)
 * [Jupyter Notebook](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.ipynb)
 * [Notebook PDF](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.pdf)
 * [Data Sources](https://www.seattle.gov/police/information-and-data/data/terry-stops/terry-stops-dataset)
