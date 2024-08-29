@@ -5,7 +5,7 @@
 
 project tree:
 .gitignore
-Phase3-Presentation.pptx
+presentation.pdf
 index.ipynb
 index.pdf
 readme.md
