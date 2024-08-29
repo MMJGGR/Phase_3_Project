@@ -1,19 +1,9 @@
-* [Slideshow Presentation](https://github.com/MMJGGR/Phase_3_Project/blob/master/presentation.pdf)
-* [Jupyter Notebook](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.ipynb)
-* [Notebook PDF](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.pdf)
-* [Data Sources](https://www.seattle.gov/police/information-and-data/data/terry-stops/terry-stops-dataset)
-
-project tree:
-.gitignore
-presentation.pdf
-index.ipynb
-index.pdf
-readme.md
-
-
 # 1. Introduction
 
-The Seattle Police Department (SPD) conducts Terry Stops as part of their law enforcement efforts to address public safety concerns. Terry Stops involve stopping, questioning, and sometimes frisking individuals based on reasonable suspicion of involvement in criminal activity. However, the effectiveness and fairness of these stops have been scrutinized, particularly regarding potential biases and the frequency of resulting arrests. To address these concerns, this analysis aims to build a predictive model that can estimate the likelihood of an arrest occurring during a Terry Stop. By leveraging historical data, we can identify patterns and factors that are most indicative of an arrest outcome, which can inform policy decisions and improve the fairness and efficiency of law enforcement practices.
+The Seattle Police Department (SPD) conducts Terry Stops as part of their law enforcement efforts to address public safety concerns. Terry Stops involve stopping, questioning, and sometimes frisking individuals based on reasonable suspicion of involvement in criminal activity. However, the effectiveness and fairness of these stops have been scrutinized, particularly regarding potential biases and the frequency of resulting arrests.
+
+
+To address these concerns, this analysis aims to build a predictive model that can estimate the likelihood of an arrest occurring during a Terry Stop. By leveraging historical data, we can identify patterns and factors that are most indicative of an arrest outcome, which can inform policy decisions and improve the fairness and efficiency of law enforcement practices.
 # 2. Problem Statement
 
 The goal of this analysis is to develop a predictive model using historical Terry Stops data from the Seattle Police Department to estimate the likelihood of an arrest during these stops. The primary challenge lies in accurately predicting arrests in a dataset that exhibits significant class imbalance, with most stops not resulting in an arrest. Addressing this imbalance and ensuring the model's predictions are both accurate and fair are critical to the success of this project.
@@ -61,6 +51,7 @@ df.head()
 ### Exploratory Data Analysis (EDA) & Feature Engineering
 df.shape
 df.describe()
+Given the shape and description of our data, most of our features seem non-numeric 
 Our data has 23 columns and 609562 rows
 df.columns
 These are the columns in our data and their descriptions based on a review of our data and information from our data source: (https://data.seattle.gov/Public-Safety/Terry-Stops/28ny-9ts8/about_data):
@@ -112,11 +103,13 @@ These are the columns in our data and their descriptions based on a review of ou
 23. Beat - Beat of the address associated with the underlying Computer Aided Dispatch (CAD) event. Not necessarily where the Terry Stop occurred. (Text)
 
 df.info()
+We seem to have a mix of numerical and non-numerical data. However, the numeric data seems to be related to identifiers vs actual numerical data
 df.isna().sum()
 We have missing data in the Officer Squad column. We will impute this column with a placeholder 'Unknown' Value
 df_imputed = df.fillna('Unknown')
 df_imputed.head()
 df_imputed.duplicated().sum()
+Our data does not have any duplicated rows
 We also seem to have rows filled with '-'. We will treat these as missing values. 
 First we need to convert these to NaN	
 for column in df_imputed.columns:
@@ -177,11 +170,12 @@ df_imputed = df_imputed[df_imputed['Officer Age'] <= 65]
 df_imputed.head()
 
 df_imputed['Officer Age'].describe()
-# Initialize bin_edges list and handle bins
+The distribution of Officer Age now makes more sense
+# Initialize bin_edges list and handle bins, setting the lower bound for the last bin to 56 (similar to Subject Age Group)
 bin_edges = []
 for bin in bins:
     if bin == '56 and Above':
-        bin_edges.append(56)  # Set the lower bound for the last bin to 56
+        bin_edges.append(56) 
     else:
         lower_bound = int(bin.split(' - ')[0])
         bin_edges.append(lower_bound)
@@ -195,14 +189,16 @@ bin_edges.append(max_age)
 bin_edges = sorted(set(bin_edges))  
 
 bin_edges
+# We will use labels similar to those in Subject Age Group
 labels = df_imputed['Subject Age Group'].unique().tolist()
 labels
-print('length of bin_dedges: ', len(bin_edges)-1)
+print('length of bin_edges: ', len(bin_edges)-1)
 print('length of labels: ', len(labels))
+#compares the labels we extracted from the Subject Age Group column with the labels we created from the bins we created for Officer Age Group
 labels = df_imputed['Subject Age Group'].unique().tolist()
 if len(bin_edges) - 1 != len(labels):
     raise ValueError("The number of labels does not match the number of bins")
-# Apply pd.cut() to create the bins for Officer Age
+# Use pd.cut to create the bins for Officer Age
 df_imputed['Officer Age Group'] = pd.cut(df_imputed['Officer Age'], bins=bin_edges, labels=labels, right=True)
 
 print('Officer Age Group:', bins)
@@ -240,14 +236,14 @@ We have dropped 6 columns 'Subject ID', 'Officer YOB', 'GO / SC Num', 'Terry Sto
 Let us look at what our dataset looks like now
 df_preprocessed.shape
 df_preprocessed.duplicated().sum()
-Let's drop our duplicated rows
+Let's drop our duplicated rows - these may be rows entered multiple times under different IDs that we dropped
 df_preprocessed.drop_duplicates(inplace = True)
 print('Shape: ',df_preprocessed.shape)
 print('Duplicates: ',df_preprocessed.duplicated().sum())
 Our dataset now has 17 columns and 54,868 rows and no duplicates
 df_preprocessed.columns
-df_preprocessed['Subject Age Group']
 df_preprocessed.describe()
+We are left with only categorical data from a review of the description. We will continu
 #### Types of Variables:
 
 Next we will look at the types of variables in our dataset. 
@@ -274,8 +270,8 @@ print('The categorical variables are :', categorical)
 
 All our features are categorical variables. 
 
-### Visualizing the distribution of our features
-for column in X.columns:
+### Visualizing the distribution of our dataset
+for column in df_preprocessed.columns:
     plt.figure(figsize = (18,10))
     sns.countplot(data=df_preprocessed, x=column, order=df_preprocessed[column].value_counts().index)
     plt.xticks(rotation=90)
@@ -294,7 +290,8 @@ Some of our features have high cardinality as exhibited by their high frequency:
 4. Beat: 55 unique values
 5. Weapon Type: 22 unique value
 6. Sector: 20 unique values
-These features could lead to a high dimensional feature space if we apply one hot encoding (OHE) directly.
+
+These features could lead to a high dimensional feature space if we apply one hot encoding (OHE) directly to our entire feature set.
 
 
 #### Low Cardinality Features
@@ -366,7 +363,7 @@ print('No. of rows in encoded data:', (X_train.shape[0]+X_test.shape[0]))
 print('No. of rows in original data:', (df_preprocessed.shape[0]))
 print(f'No of features in encoded data {X_train.shape[1]} in Train Set and {X_test.shape[1]} in test set:')
 print('No. of features in original data:', (df_preprocessed.drop('Arrest Flag', axis=1).shape[1]))
-As expected, target encoding does not change the shape of our data
+As expected, target encoding does not change the shape of our data, we did not alter the shape of our data or create missing values
 #### One Hot Encoding
 
 Next, we will one hot encode our low cardinality features. Unlike with target encoding, one hot encoding will alter the shape of our data by creating additional columns for each unique value of our low cardinality features (and dropping the first column of each category since it does not add any new information that we cannot get by aggregating the rest of the columns for similar categories).
@@ -418,7 +415,7 @@ As expected, our rows are preserved but our encoded data now has additional colu
 # 6. Modeling
 ### Baseline Metrics
 
-We will create a baseline model that always predicts the positive class. We will use the model's score to evaluate our model.
+We will create a baseline model that always predicts the positive class. We will use the model's score to evaluate our logistic models.
 
 from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.dummy import DummyClassifier
@@ -461,7 +458,7 @@ The model's precision, recall, and F1-score are all 0.00 because it never predic
 ### Logistic Regression
 We will start by training our model by fitting the training data to a logistic regression model. 
 
-**1.  Model 1 with Minimal Regularization Strength**
+**1.  Model 1**
 
 - ***C***: This parameter controls the regularization strength. A higher C reduces the penalty on the model for large coefficients allowing to fit the data more optimally but with additional risk of overfitting.
 - ***solver***: This parameter specifies the algorithm used to optimize the model. 'lbfgs' is a limited-memory solver that can be efficient for large datasets.
@@ -482,7 +479,7 @@ Next, we apply the model to our test set to see its predictive performance
 y_pred_test = logreg.predict(X_test)
 
 y_pred_test
-Let us to see the no. of unique values in our predictions in our target before assessing the perfomance of our model.
+Let us to see the no. of unique values in our target again before assessing the perfomance of our model.
 true_proportion = y_test.value_counts(normalize=True)[1] 
 
 
@@ -539,13 +536,15 @@ Our training set score of 92.1% and test set score of 92.7% imply that our model
 Precision and Recall for the False Class: 
 - Precision: 0.95
 - Recall: 0.96
-- F1-Score: 0.96\
+- F1-Score: 0.96
+
 These scores indicate the model performs very well in predicting the majority class (False).
 
 Precision and Recall for the True Class:
 - Precision: 0.69
 - Recall: 0.61
- - F1-Score: 0.65\
+ - F1-Score: 0.65
+ 
 This shows the model struggles to accurately predict the minority class (True), missing 39% of the actual positives.
 
 ****c. ROC Curve:****\
@@ -574,21 +573,21 @@ In comparison, in our logistic regression mode, the F1-score for both classes is
 
 
 ****Implications of Class Imbalance:****
-- Biased Model Predictions: Class imbalance can cause our logistic regression model to be biased towards predicting the majority class ('False' for no arrest) because predicting the majority class more frequently would still yield a high accuracy. In law enforcement, accurately predicting the 'Arrest Flag' is crucial. Misclassifying an actual arrest situation (False Negative) could have serious implications, such as failing to appropriately flag an encounter where an arrest should occur.
+- Biased Model Predictions: Class imbalance can cause our logistic regression model to be biased towards predicting the majority class ('False' for no arrest) because predicting the majority class more frequently would still yield a high accuracy. In law enforcement, accurately predicting the 'Arrest Flag' is crucial. Misclassifying an actual arrest situation (False Negative) could have serious implications, such as failing to appropriately flag an encounter where an arrest should have occured.
 
 - Underperformance on Minority Class: As seen in the classification report, the precision and recall for the 'True' class (arrest) are significantly lower than for the 'False' class. This suggests that the model struggles to correctly identify and predict arrests, which is the minority class. Overpredicting 'False' (no arrest) could lead to missed opportunities for police intervention, which might not align with the goals of public safety and proper law enforcement.
 
 
 ****Using SMOTE to Address Class Imbalance****
 
-SMOTE (Synthetic Minority Oversampling) generates new sample data using 'synthetic' data from our original dataset. 
+SMOTE (Synthetic Minority Oversampling) generates new sample data using 'synthetic' data from our original dataset, this reduces class imbalance by increasing the number of minority class instances in our dataset. 
 
 
 from imblearn.over_sampling import SMOTE
 
 print('Original class distribution: \n')
 print(y_train.value_counts())
-
+colors = sns.color_palette('Set2')
 # Initialize SMOTE and resample the data
 smote = SMOTE()
 X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
@@ -600,7 +599,7 @@ print(pd.Series(y_train_resampled).value_counts())
 # Now let's compare a few different ratios of minority class to majority class
 ratios = [0.25, 0.5, 0.75, 1.0]
 names = ['0.25', '0.5', '0.75', '1.0'] 
-colors = sns.color_palette('Set2')
+
 
 plt.figure(figsize=(10, 8))
 
@@ -729,11 +728,15 @@ print(coef_df[['Feature', 'Coefficient']])
 ### **a. Major Objective: Derive the most important features in predicting an arrest:**
 Our most important features are the following:
 
-1. Stop Resolution_Field Contact (coefficient: -11.1) - this is a feature that arose because of one hot encoding our data but signals that most stops arising naturally in the field end up with no arrests as signalled by the negative coefficient.
-2. Beat (Coefficient: 12.40)- The Beat feature has a significant positive coefficient, indicating that certain beats are more associated with arrests. This could be related to specific crime rates, community issues, or patrol patterns in those beats.
-3. Officer Squad (coefficient: 13.81) - The positive coefficient for Officer Squad indicates that the specific squad or team involved in the stop is a significant factor in predicting arrests. This may reflect differences in squad practices, experience, or operational focus.
-4. Weapon Type (Coefficient: 26.14) -The high positive coefficient for Weapon Type suggests that the presence of a weapon is a strong predictor of an arrest. This is intuitive, as encounters involving weapons are more likely to escalate to an arrest due to safety concerns and legal considerations.
-5. Sector (Coefficient: -10.90) - The negative coefficient for Sector suggests that certain sectors are less likely to result in an arrest. This could be due to differences in crime patterns or the nature of incidents in different sectors.
+**1. Stop Resolution_Field Contact (coefficient: -11.1)** - this is a feature that arose because of one hot encoding our data but signals that most stops arising naturally in the field end up with no arrests as signalled by the negative coefficient.
+
+**2. Beat (Coefficient: 12.40)**- The Beat feature has a significant positive coefficient, indicating that certain beats are more associated with arrests. This could be related to specific crime rates, community issues, or patrol patterns in those beats.
+
+**3. Officer Squad (coefficient: 13.81)** - The positive coefficient for Officer Squad indicates that the specific squad or team involved in the stop is a significant factor in predicting arrests. This may reflect differences in squad practices, experience, or operational focus.
+
+**4. Weapon Type (Coefficient: 26.14)** -The high positive coefficient for Weapon Type suggests that the presence of a weapon is a strong predictor of an arrest. This is intuitive, as encounters involving weapons are more likely to escalate to an arrest due to safety concerns and legal considerations.
+
+**5. Sector (Coefficient: -10.90)** - The negative coefficient for Sector suggests that certain sectors are less likely to result in an arrest. This could be due to differences in crime patterns or the nature of incidents in different sectors.
 plt.figure(figsize=(15, 10))
 plt.barh(coef_df['Feature'][:5], coef_df['Coefficient'][:5])
 plt.xlabel('Coefficient Value')
@@ -744,21 +747,19 @@ plt.show()
 
 Our final model gernerally improves upon the baseline model and earlier iterations.
 
-Model Performance:
-
 **Accuracy Score: 91.67%**. This indicates that the model performs well overall.
 
 **Precision and Recall:**
 
-Precision for False (No Arrest): 0.97
-Recall for False (No Arrest): 0.93
-Precision for True (Arrest): 0.61
-Recall for True (Arrest): 0.81
+- Precision for False (No Arrest): 0.97
+- Recall for False (No Arrest): 0.93
+- Precision for True (Arrest): 0.61
+- Recall for True (Arrest): 0.81
 
 While the model has a high accuracy, this is mostly due to predicting situations where no arrest is made as signified by the high precision and recall for the False class. Its performance on predicting arrests (the minority class) reveals a trade-off: higher recall but lower precision. This means the model is good at identifying cases where an arrest is likely but might also incorrectly label some non-arrest cases as arrests. While we tried to reduce this trade-off, given the nature of the data, we cannot resolve it fully. This is an important consideration in the practical use of the model for future prediction.
 ### **c. EDA and Feature Engineering:**
 
-Our exploratory data analysis(EDA) highlighted some issues with missing values where some rows have blank values and others had been filled in with a placeholder value ('-').
+Our exploratory data analysis (EDA) highlighted some issues with missing values where some rows had blank values and others had been filled in with a placeholder value ('-').
 
 **Handling of missing values:**
 
@@ -790,8 +791,6 @@ We used 'One Hot Encoding' for features in our dataset with low cardinality  One
 
 We used SMOTE to address the class imbalance in our target variable.
 
-Impact on our model performance:
-
 Addressing class imbalance using SMOTE (Synthetic Minority Over-sampling Technique) was important in our logistic regression modeling process due to the following reasons:
 
 **1. Improvement in Minority Class Recall:**\
@@ -802,7 +801,7 @@ After applying SMOTE, the recall for the True class improved significantly (0.81
 Without addressing the imbalance, the logistic regression model performed extremely well on the majority class (False) but poorly on the minority class (True). This imbalance in performance was reflected in the F1-score and recall differences. Applying SMOTE balanced the dataset, allowing the logistic regression model to learn equally well from both classes. As a result, the F1-score for the True class improved, leading to a more balanced performance that reflects a model capable of handling both True and False outcomes more equitably.
 
 **3. Mitigation of Bias Towards Majority Class:**\
-Imbalanced datasets cause models to be biased towards predicting the majority class e.g., the baseline model's constant prediction of the majority class (No Arrests) resulted in low precision and F1-scores. SMOTE helped mitigate this bias by oversampling the minority class, providing the model with a more representative training set. This change encouraged our model to learn the features distinguishing Arrests and No Arrests more effectively resulting in the models overall predictive ability given identifying minority class instances (arrests) is crucial, as false negatives (missed True cases) can have significant real-world implications.**
+Imbalanced datasets cause models to be biased towards predicting the majority class e.g., the baseline model's constant prediction of the majority class (No Arrests) resulted in low precision and F1-scores. SMOTE helped mitigate this bias by synthetically oversampling the minority class, providing the model with a more representative training set. This change encouraged our model to learn the features distinguishing Arrests and No Arrests more effectively resulting in the models overall predictive ability given identifying minority class instances (arrests) is crucial, as false negatives (missed True cases) can have significant real-world implications.**
 # 7. Recommendations
 **1. Enhance Training and Protocols for Weapon-Related Stops**
 
@@ -828,11 +827,10 @@ The analysis of Beat and Sector features indicates varying likelihoods of arrest
 
 **4. Review and Standardize Field Contact Procedures**
 
-The negative coefficient for Stop Resolution_Field Contact suggests that stops resulting in field contacts are less likely to lead to arrests. SPD should continue to review the outcomes of actual stops to those predicted by the mode to ensure that field contacts are well-justified and in line with department policies.
+The negative coefficient for Stop Resolution_Field Contact suggests that stops resulting in field contacts are less likely to lead to arrests. SPD should continue to review the outcomes of actual stops to those predicted by the model to ensure that field contacts are well-justified and in line with department policies.
 
 **5. Use Model to Improve Law Enforcement Practices**
 
  - Implement Decision-Making Frameworks: Use the model as one tool among many in decision-making processes. Combine model predictions with officer judgment and contextual information to make balanced decisions.
  - Continuous Model Improvement: Regularly update and refine the model to improve performance on predicting arrests. Consider exploring other advanced techniques for class imbalance management, such as different sampling methods.
  - Evaluation and Feedback: Continuously evaluate the impact of the predictive model on real-world outcomes and gather feedback from officers to make necessary adjustments and improvements.
-
