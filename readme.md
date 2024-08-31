@@ -1,3 +1,10 @@
+* [Presentation](https://github.com/MMJGGR/Phase_3_Project/blob/master/presentation.pdf)
+* [Jupyter Notebook](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.ipynb)
+* [Notebook PDF](https://github.com/MMJGGR/Phase_3_Project/blob/master/index.pdf)
+* [Data Sources](https://data.seattle.gov/Public-Safety/Terry-Stops/28ny-9ts8/about_data)
+
+
+
 # **Terry Stops Classification Project**
 
 ## **Overview**
